@@ -20,6 +20,7 @@ const TableReview: React.FC = () => {
       );
       const data1 = await response1.json();
       const data2 = await response2.json();
+
       setData1(data1);
       setData2(data2);
       setLoading(false);
@@ -56,15 +57,24 @@ const TableReview: React.FC = () => {
 
   return (
     <div className={style.container}>
-      <div className={style.sort}>
-        <select id="sort" onChange={(e) => setSort(e.target.value)}>
-          <option value="none">По умолчанию</option>
-          <option value="type">Сначала положительные</option>
+      <div className={style.switch}>
+        <select
+          defaultValue={"time"}
+          id="sort"
+          onChange={(e) => setSort(e.target.value)}
+        >
           <option value="time">Сначала новые</option>
+          <option value="type">Сначала положительные</option>
           <option value="name">Сначала с именем пользователя</option>
         </select>
       </div>
       <div className={style.table}>
+        <div className={style.table_row}>
+          <div className={style.cell_index}>Индекс ревью</div>
+          <div className={style.cell_type}>Тип ревью</div>
+          <div className={style.cell_text}>Текст ревью</div>
+          <div className={style.cell_name}>Фамилия и имя пользователя</div>
+        </div>
         {reviews
           .sort((a, b) =>
             sort === "type"
@@ -78,21 +88,21 @@ const TableReview: React.FC = () => {
               : 0
           )
           .map((item, index) => (
-            <div key={index} className={style.row}>
-              <div className={style.number}>{index + 1}</div>
+            <div key={index} className={style.table_row}>
+              <div className={style.cell_index}>{index + 1}</div>
               {item.reviewType === 0 ? (
-                <div className={style.type_m}>отрицательный</div>
+                <div className={style.cell_type_m}>отрицательный</div>
               ) : (
-                <div className={style.type_p}>положительный</div>
+                <div className={style.cell_type_p}>положительный</div>
               )}
-              <div className={style.text}>{item.reviewText}</div>
+              <div className={style.cell_text}>{item.reviewText}</div>
               {item.lastName ? (
-                <div className={style.name}>
+                <div className={style.cell_name}>
                   {item.firstName} &nbsp;
                   {item.lastName}
                 </div>
               ) : (
-                <div className={style.noname}>пользватель не найден</div>
+                <div className={style.cell_noname}>пользователь не найден</div>
               )}
             </div>
           ))}
