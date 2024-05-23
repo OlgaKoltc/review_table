@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useMemo } from "react";
 import { IReview, IData1Item, IData2Item } from "../../types/data";
 import style from "./style.module.scss";
 
@@ -9,34 +10,32 @@ const TableReview: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [sort, setSort] = useState<string>();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      const response1 = await fetch(
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    const responses = await Promise.all([
+      fetch(
         "http://www.filltext.com/?rows=50&id=%7bnumber|1000%7d&userId=%7bnumber|15%7d&reviewText=%7blorem|32%7d&reviewType=%7bnumber|1%7d&delay=5"
-      );
-      const response2 = await fetch(
+      ),
+      fetch(
         "http://www.filltext.com/?rows=12&userId=%7bnumber|12%7d&firstName=%7bfirstName%7d&lastName=%7blastName%7d"
-      );
-      const data1 = await response1.json();
-      const data2 = await response2.json();
+      ),
+    ]);
 
-      setData1(data1);
-      setData2(data2);
-      setLoading(false);
-    };
-    fetchData();
+    const [data1, data2] = await Promise.all(
+      responses.map((response) => response.json())
+    );
+
+    setData1(data1);
+    setData2(data2);
+    setLoading(false);
   }, []);
 
   useEffect(() => {
-    if (data1.length > 0 && data2.length > 0) {
-      const mergedReviews = mergeData(data1, data2);
-      setReviews(mergedReviews);
-    }
-  }, [data1, data2]);
+    fetchData();
+  }, [fetchData]);
 
   const mergeData = (data1: IData1Item[], data2: IData2Item[]): IReview[] => {
-    const userIdSet = new Set(data1.map((item) => item.userId));
+    //const userIdSet = new Set(data1.map((item) => item.userId));
     return data1.map((item) => {
       const matchingItem = data2.find(
         (data2Item) => data2Item.userId === item.userId
@@ -50,6 +49,13 @@ const TableReview: React.FC = () => {
       };
     });
   };
+
+  useMemo(() => {
+    const mergedReviews = mergeData(data1, data2);
+    setReviews(mergedReviews);
+  }, [data1, data2]);
+
+  console.log("render");
 
   if (loading) {
     return <h2>Loading...</h2>;
